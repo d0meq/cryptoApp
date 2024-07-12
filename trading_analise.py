@@ -1,6 +1,7 @@
 import pandas as pd
 import datetime as dt
 import yfinance as yf
+import xlsxwriter
 import os
 import signal 
 import subprocess
@@ -31,7 +32,15 @@ end = input("Insert end-date (YYYY-MM-DD): ")
 
 yf.pdr_override()
 
-position = ['U2', 'U17', 'U32', 'U47', 'U62', 'U77']
+if len(stock_list) == 4:
+    position = ['AA2', 'AA17', 'AA32', 'AA47', 'AA62', 'AA77']
+if len(stock_list) == 3:
+    position = ['U2', 'U17', 'U32', 'U47', 'U62', 'U77']
+if len(stock_list) == 2:
+    position = ['O2', 'O17', 'O32', 'O47', 'O62', 'O77']
+if len(stock_list) == 1:
+    position = ['I2', 'I17', 'I32', 'I47', 'I62', 'I77']
+
 colors = ['#4299f5', '#5d42f5', '#ce42f5', '#f5425d', '#000000', '#FFFFFF']
 
 stock_data = pdr.get_data_yahoo(stock_list, start, end)
@@ -43,6 +52,8 @@ with pd.ExcelWriter(output_path, engine='xlsxwriter') as writer:
 
     workbook = writer.book
     worksheet = writer.sheets['Sheet1']
+    
+    worksheet.set_column('A:A', 30)
 
     y = 1
 
