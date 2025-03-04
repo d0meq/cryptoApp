@@ -5,7 +5,6 @@ import xlsxwriter
 import os
 import signal 
 import subprocess
-from pandas_datareader import data as pdr
 from openpyxl import load_workbook
 from packaging.version import Version
 
@@ -31,8 +30,6 @@ stock_list = input("Insert stocks in which you are interested in: ").split()
 start = input("Insert start-date (YYYY-MM-DD): ")
 end = input("Insert end-date (YYYY-MM-DD): ")
 
-yf.pdr_override()
-
 if len(stock_list) == 4:
     position = ['AA2', 'AA17', 'AA32', 'AA47', 'AA62', 'AA77']
 if len(stock_list) == 3:
@@ -44,9 +41,16 @@ if len(stock_list) == 1:
 
 colors = ['#4299f5', '#5d42f5', '#ce42f5', '#f5425d', '#000000', '#FFFFFF']
 
-stock_data = pdr.get_data_yahoo(stock_list, start, end)
+# Fetch stock data using yfinance
+stock_data = {}
+for stock in stock_list:
+    try:
+        stock_data[stock] = yf.download(stock, start=start, end=end)
+    except Exception as e:
+        print(f"Failed to download data for {stock}: {e}")
 
-df = pd.DataFrame(stock_data)
+# Combine all stock data into a single DataFrame
+df = pd.concat(stock_data.values(), keys=stock_data.keys(), axis=1)
 output_path = 'D:/git/cryptoApp/ports/crypto_report.xlsx'
 with pd.ExcelWriter(output_path, engine='xlsxwriter') as writer:
     df.to_excel(writer, sheet_name='Sheet1')
@@ -58,17 +62,17 @@ with pd.ExcelWriter(output_path, engine='xlsxwriter') as writer:
 
     y = 1
 
-    for i in range(len(stock_list)):
+    for i, stock in enumerate(stock_data.keys()):
         chart = workbook.add_chart({'type': 'line'})
 
         chart.add_series({
-            'name': stock_list[i],
+            'name': stock,
             'categories': ['Sheet1', 1, 0, len(df), 0],
             'values': ['Sheet1', 1, y, len(df), y],
             'line': {'color': colors[i]},
         })
 
-        chart.set_title({'name': stock_list[i]})
+        chart.set_title({'name': stock})
         chart.set_x_axis({'name': 'Date'})
         chart.set_y_axis({'name': 'USD$'})
 
