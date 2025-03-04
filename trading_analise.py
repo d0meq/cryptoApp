@@ -7,6 +7,7 @@ import signal
 import subprocess
 from pandas_datareader import data as pdr
 from openpyxl import load_workbook
+from packaging.version import Version
 
 def terminate_excel():
     process = subprocess.Popen(['tasklist'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
